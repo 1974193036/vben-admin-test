@@ -3,7 +3,8 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx' // JSX写法
 import windiCSS from 'vite-plugin-windicss' // windiCss
 import legacy from '@vitejs/plugin-legacy' // IE11兼容
-import { configVisualizerConfig } from './visualizer'
+import vueSetupExtend from 'vite-plugin-vue-setup-extend' // script setup语法糖中定义组件`name`
+import { configVisualizerConfig } from './visualizer' // 打包文件分析
 import AutoImport from 'unplugin-auto-import/vite' // 自动导入vue全局api
 import Components from 'unplugin-vue-components/vite' // 自动导入组件
 
@@ -13,7 +14,9 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   const vitePlugins: (PluginOption | PluginOption[])[] = [
     // have to
     vue(),
-    vueJsx()
+    vueJsx(),
+    // support name
+    vueSetupExtend()
   ]
 
   // vite-plugin-windicss

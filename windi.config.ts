@@ -23,7 +23,7 @@ export default defineConfig({
         md: `${screenEnum.MD}px`,
         lg: `${screenEnum.LG}px`,
         xl: `${screenEnum.XL}px`,
-        '2xl': `${screenEnum.XXL}px`
+        xxl: `${screenEnum.XXL}px`
       }
     }
   }

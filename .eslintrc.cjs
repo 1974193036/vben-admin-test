@@ -82,6 +82,7 @@ module.exports = {
         math: 'always'
       }
     ],
-    'vue/multi-word-component-names': 'off'
+    'vue/multi-word-component-names': 'off',
+    'symbol-description': 'off'
   }
 }

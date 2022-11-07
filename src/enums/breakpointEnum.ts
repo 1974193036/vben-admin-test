@@ -1,4 +1,4 @@
-export const enum sizeEnum {
+export enum sizeEnum {
   XS = 'XS',
   SM = 'SM',
   MD = 'MD',
@@ -7,7 +7,7 @@ export const enum sizeEnum {
   XXL = 'XXL'
 }
 
-export const enum screenEnum {
+export enum screenEnum {
   XS = 320,
   SM = 576,
   MD = 768,
