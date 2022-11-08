@@ -9,6 +9,8 @@ declare interface ViteEnv {
   VITE_DROP_CONSOLE: boolean
   VITE_PROXY: [string, string][]
   VITE_LEGACY: boolean
+  VITE_USE_MOCK: boolean
+  VITE_GLOB_API_URL: string
 }
 
 declare interface ImportMetaEnv extends ViteEnv {

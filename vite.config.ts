@@ -21,6 +21,8 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
 
   const isBuild = command === 'build'
 
+  console.log(viteEnv)
+
   return {
     root,
     base: VITE_PUBLIC_PATH,
@@ -32,12 +34,12 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
     plugins: createVitePlugins(viteEnv, isBuild),
     resolve: {
       alias: [
-        // /@/xxxx => src/xxxx
+        // @/xxxx => src/xxxx
         {
           find: /@\//,
           replacement: pathResolve('src') + '/'
         },
-        // /#/xxxx => types/xxxx
+        // #/xxxx => types/xxxx
         {
           find: /#\//,
           replacement: pathResolve('types') + '/'

@@ -7,9 +7,10 @@ import vueSetupExtend from 'vite-plugin-vue-setup-extend' // script setup语法�
 import { configVisualizerConfig } from './visualizer' // 打包文件分析
 import AutoImport from 'unplugin-auto-import/vite' // 自动导入vue全局api
 import Components from 'unplugin-vue-components/vite' // 自动导入组件
+import { configMockPlugin } from './mock' // mock
 
 export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
-  const { VITE_LEGACY } = viteEnv
+  const { VITE_LEGACY, VITE_USE_MOCK } = viteEnv
 
   const vitePlugins: (PluginOption | PluginOption[])[] = [
     // have to
@@ -21,6 +22,9 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
 
   // vite-plugin-windicss
   vitePlugins.push(windiCSS())
+
+  // vite-plugin-mock
+  VITE_USE_MOCK && vitePlugins.push(configMockPlugin(isBuild))
 
   vitePlugins.push(
     AutoImport({
