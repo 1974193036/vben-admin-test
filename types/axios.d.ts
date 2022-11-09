@@ -1,4 +1,4 @@
-type errorMessageMode = 'none' | 'modal' | 'message' | undefined
+export type ErrorMessageMode = 'none' | 'modal' | 'message' | undefined
 
 export interface RequestOptions {
   // 是否需要对返回数据进行处理
@@ -8,24 +8,13 @@ export interface RequestOptions {
   // 接口地址，例如/basic-api
   apiUrl?: string
   // 消息提示类型
-  errorMessageMode?: errorMessageMode
+  errorMessageMode?: ErrorMessageMode
   // 是否加入时间戳
   joinTime?: boolean
   // 忽略重复请求: true可以重复请求，false取消重复的请求
   ignoreCancelToken?: boolean
   // 是否在请求头中发送令牌
   withToken?: boolean
-  // 请求重试机制
-  retryRequest?: RetryRequest
-}
-
-interface RetryRequest {
-  // 是否重试请求
-  isOpenRetry: boolean
-  // 重试次数
-  count: number
-  // 重试等待时间
-  waitTime: number
 }
 
 export interface Result<T = any> {
@@ -33,4 +22,17 @@ export interface Result<T = any> {
   message: string
   result: T
   type: 'success' | 'error' | 'warning'
+}
+
+// multipart/form-data: upload file
+export interface UploadFileParams {
+  // Other parameters
+  data?: Recordable
+  // File parameter interface field name
+  name?: string
+  // file name
+  file: File | Blob
+  // file name
+  filename?: string
+  [key: string]: any
 }

@@ -2,11 +2,9 @@ import { clone } from 'lodash-es'
 import { deepMerge, joinTimestamp } from '@/utils/index'
 import { isString } from '@/utils/is'
 import { ContentTypeEnum, RequestEnum, ResultEnum } from '@/enums/httpEnum'
-// import type { AxiosResponse, AxiosRequestConfig } from 'axios'
-// import type { RequestOptions, Result } from '#/axios'
-
 import type { AxiosTransform, CreateAxiosOptions } from './axiosTransform'
 import { VAxios } from './Axios'
+import { checkStatus } from './checkStatus'
 
 const transform: AxiosTransform = {
   /**
@@ -64,17 +62,54 @@ const transform: AxiosTransform = {
   },
 
   /**
-   * @description: 响应拦截器错误处理（接口无响应，http状态码为400，500等）
+   * @description: 响应拦截器错误处理（超出 2xx 范围的状态码都会触发该函数）
    */
-  responseInterceptorsCatch: (axiosInstance, error) => {
-    // todo: 响应拦截器错误处理
-    // todo: 添加自动重试机制 保险起见 只针对GET请求
+  responseInterceptorsCatch: (error) => {
     console.log('=========', error)
+    // todo: 添加错误日志
+    // const errorLogStore = useErrorLogStoreWithOut();
+    // errorLogStore.addAjaxErrorInfo(error);
+
+    const { response, code, message, config } = error || {}
+    // @ts-ignore
+    const errorMessageMode = config?.requestOptions?.errorMessageMode || 'none'
+    // @ts-ignore
+    const msg: string = response?.data?.message || message || ''
+    const err: string = error?.toString?.() || ''
+
+    let errMessage = ''
+    try {
+      if (code === 'ECONNABORTED' && message.indexOf('timeout') !== -1) {
+        errMessage = '接口请求超时, 请刷新页面重试!'
+      }
+      if (err?.includes('Network Error')) {
+        errMessage = '网络异常, 请检查您的网络连接是否正常!'
+      }
+
+      if (errMessage) {
+        if (errorMessageMode === 'modal') {
+          // todo:
+          // createErrorModal({ title: '错误提示', content: errMessage })
+        } else if (errorMessageMode === 'message') {
+          // todo:
+          // createMessage.error(errMessage)
+        }
+        return Promise.reject(error)
+      }
+    } catch (error) {
+      throw new Error(error as unknown as string)
+    }
+
+    // todo: checkStatus
+    // 上面的情况甚至都不返回error.response
+    // checkStatus: 超出 2xx 范围的错误提示
+    checkStatus(error?.response?.status as number, msg, errorMessageMode)
+
     return Promise.reject(error)
   },
 
   /**
-   * @description: 处理响应数据（接口响应正常返回，比响应拦截器更晚）
+   * @description: 处理响应数据（接口响应正常2xx返回，比响应拦截器更晚）
    */
   transformResponseHook: (res, options) => {
     const { isTransformResponse, isReturnNativeResponse } = options
@@ -148,13 +183,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
       // 忽略重复请求: true可以重复请求，false取消重复的请求
       ignoreCancelToken: true,
       // 是否携带token
-      withToken: true,
-      // 请求重试机制
-      retryRequest: {
-        isOpenRetry: true,
-        count: 3,
-        waitTime: 150
-      }
+      withToken: true
     }
   }
   // 深度合并

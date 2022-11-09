@@ -50,7 +50,7 @@ export default [
   // 登录
   {
     url: '/basic-api/login',
-    timeout: 200,
+    timeout: 400,
     method: 'post',
     response: ({ body }) => {
       const { username, password } = body

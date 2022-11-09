@@ -1,9 +1,12 @@
 import { cloneDeep } from 'lodash-es'
 import axios from 'axios'
+import qs from 'qs'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import type { CreateAxiosOptions } from './axiosTransform'
-import type { RequestOptions, Result } from '#/axios'
+import type { RequestOptions, Result, UploadFileParams } from '#/axios'
 import { isFunction } from '@/utils/is'
+import { ContentTypeEnum, RequestEnum } from '@/enums/httpEnum'
+import { AxiosCanceler } from './axiosCancel'
 
 export class VAxios {
   private readonly options: CreateAxiosOptions
@@ -27,14 +30,20 @@ export class VAxios {
       responseInterceptorsCatch
     } = transform
 
+    const axiosCanceler = new AxiosCanceler()
+
     // 请求拦截器
     this.axiosInstance.interceptors.request.use((config: CreateAxiosOptions) => {
       // @ts-ignore
       console.log(config)
       const { ignoreCancelToken } = config.requestOptions!
-      if (ignoreCancelToken === false) {
-        console.log('todo: 忽略重复请求: true可以重复请求，false取消重复的请求')
-      }
+      // if (ignoreCancelToken === false) {
+      //   // 忽略重复请求: true可以重复请求，false取消重复的请求
+      //   axiosCanceler.addPending(config, ignoreCancelToken)
+      // }
+      // 忽略重复请求: true可以重复请求，false取消重复的请求
+      axiosCanceler.addPending(config, ignoreCancelToken as boolean)
+
       if (requestInterceptors && isFunction(requestInterceptors)) {
         config = requestInterceptors(config)
       }
@@ -48,7 +57,9 @@ export class VAxios {
 
     // 响应拦截器
     this.axiosInstance.interceptors.response.use((res: AxiosResponse<any>) => {
-      // todo: 响应都结束了，取消`取消请求`
+      if (res) {
+        axiosCanceler.removePending(res.config)
+      }
       if (responseInterceptors && isFunction(responseInterceptors)) {
         res = responseInterceptors(res)
       }
@@ -59,7 +70,7 @@ export class VAxios {
     if (responseInterceptorsCatch && isFunction(responseInterceptorsCatch)) {
       this.axiosInstance.interceptors.response.use(undefined, (error: AxiosError) => {
         // @ts-ignore
-        return responseInterceptorsCatch(this.axiosInstance, error)
+        return responseInterceptorsCatch(error)
       })
     }
   }
@@ -67,6 +78,57 @@ export class VAxios {
   private getTransform() {
     const { transform } = this.options
     return transform
+  }
+
+  /**
+   * @description:  File Upload
+   */
+  uploadFile<T = any>(config: CreateAxiosOptions, params: UploadFileParams) {
+    const formData = new window.FormData()
+    const customFilename = params.name || 'file'
+    if (params.filename) {
+      formData.append(customFilename, params.file, params.filename)
+    } else {
+      formData.append(customFilename, params.file)
+    }
+    if (params.data) {
+      Object.keys(params.data).forEach((key) => {
+        const value = params.data![key]
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            formData.append(`${key}[]`, item)
+          })
+          return
+        }
+        formData.append(key, value)
+      })
+    }
+
+    return this.axiosInstance.request<T>({
+      ...config,
+      method: 'POST',
+      data: formData,
+      headers: {
+        'Content-type': ContentTypeEnum.FORM_DATA
+      }
+    })
+  }
+
+  supportFormData(config: CreateAxiosOptions) {
+    const headers = config.headers || this.options.headers
+    const contentType = headers?.['Content-Type'] || headers?.['content-type']
+    if (
+      contentType !== ContentTypeEnum.FORM_URLENCODED ||
+      !Reflect.has(config, 'data') ||
+      config.method?.toUpperCase() === RequestEnum.GET
+    ) {
+      return config
+    }
+
+    return {
+      ...config,
+      data: qs.stringify(config.data, { arrayFormat: 'brackets' })
+    }
   }
 
   request<T = any>(config: AxiosRequestConfig, options?: RequestOptions): Promise<T> {
@@ -82,9 +144,11 @@ export class VAxios {
     if (beforeRequestHook && isFunction(beforeRequestHook)) {
       conf = beforeRequestHook(conf, opt)
     }
-    // conf.requestOptions = opt
 
-    // todo: 支持form表单提交
+    conf.requestOptions = opt
+
+    // 支持application/x-www-form-urlencoded
+    conf = this.supportFormData(conf)
 
     return this.axiosInstance
       .request<any, AxiosResponse<Result>>(conf)

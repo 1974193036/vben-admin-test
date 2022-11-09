@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
+import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 
 import type { RequestOptions, Result } from '#/axios'
 
@@ -31,9 +31,9 @@ export abstract class AxiosTransform {
   responseInterceptors?: (res: AxiosResponse<any>) => AxiosResponse<any>
 
   /**
-   * @description: 响应拦截器错误处理（接口无响应，http状态码为400，500等）
+   * @description: 响应拦截器错误处理（超出 2xx 范围的状态码都会触发该函数）
    */
-  responseInterceptorsCatch?: (axiosInstance: AxiosInstance, error: AxiosError) => void
+  responseInterceptorsCatch?: (error: AxiosError) => void
 
   /**
    * @description: 处理响应数据（接口响应正常返回，比响应拦截器更晚）
