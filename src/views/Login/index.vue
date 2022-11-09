@@ -10,16 +10,16 @@
 import { defHttp } from '@/utils/http'
 import { AxiosCanceler } from '@/utils/http/axiosCancel'
 
-interface RoleInfo {
-  roleName: string
-  value: string
-}
+// interface RoleInfo {
+//   roleName: string
+//   value: string
+// }
 
-interface LoginResultModel {
-  userId: string | number
-  token: string
-  roles: RoleInfo[]
-}
+// interface LoginResultModel {
+//   userId: string | number
+//   token: string
+//   roles: RoleInfo[]
+// }
 
 // defHttp
 //   .post<LoginResultModel>(
@@ -43,7 +43,7 @@ interface LoginResultModel {
 
 defHttp
   .get({
-    url: '/testRetry2'
+    url: '/testRetry'
   })
   .then((res) => {
     console.log(res)
